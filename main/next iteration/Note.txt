@@ -1,0 +1,22 @@
+LIDAR: front Lidar doesn't work (lidar 2)
+Motor doesn't work as expected: Troubleshooting wirings, PIN numbers?, circuit
+IMU for heading: deal with errors
+Odometry : Works, may need to deal with small errors
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Sample code:
+// Testing function: IMU (get Yaw), Motor (run), Bangbang control signal, Odom
+//  test();
+
+//  // ACTION: Calculate Odom through enocders
+//  // TODO: change the smapling time?
+//  encoder_odometry.update(encoder.get(),encoder.getLeftRotation());
+//  displayEncoderOdom(encoder_odometry.getX(), encoder_odometry.getH());
+//  
+//  // ACTION: 
+//  int controlSignal = controller.compute(encoder_odometry.getX());
+//
+//  // Bangbang controller
+//  // TODO: Test this
+//  Serial.print("The calculated speed is: ");
+//  Serial.println(controlSignal);
