@@ -1,0 +1,91 @@
+LIDAR: front Lidar doesn't work (lidar 2)
+Motor doesn't work as expected: Troubleshooting wirings, PIN numbers?, circuit
+
+
+IMU for heading: deal with errors
+Odometry : Works, may need to deal with small errors
+
+Detect the walls code
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+Drive straight()
+Adjust() -> LiDAR
+Rotates (MPU6050) -> Kalman filter (Orientation sensor)
+Adjust() -> Within error
+Chaining movement()
+
+optional:
+make it clean - NASA standard
+Display in the OLED
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+ float currentAngle = encoder_odometry.getH();
+     while (fabs(currentAngle) > 0.1) {
+        Serial.println("Adjusting");
+        encoder_odometry.update(encoder.getLeftRotation(),encoder.getRightRotation());
+        displayEncoderOdom(encoder_odometry.getX(), encoder_odometry.getH());
+        currentAngle = encoder_odometry.getH();
+        Serial.print("currentAngle: ");
+        Serial.println(currentAngle);
+        if (currentAngle < 0) {
+           motor1.setPWM(-controlSignal - 50);
+           motor2.setPWM(controlSignal + 50);
+        }
+  
+        if (currentAngle > 0) {
+          motor1.setPWM(-(controlSignal - 50));
+          motor2.setPWM(controlSignal - 50);
+        }
+     }
+
+    float leftWall = sensor1.readRangeSingleMillimeters();
+    float rightWall = sensor3.readRangeSingleMillimeters();
+
+    currentAngle = encoder_odometry.getH();
+    float leftErr = leftWall - firstLeftWall;
+    float rightErr = rightWall - firstRightWall;
+
+    Serial.print("leftErr: ");
+    Serial.println(leftErr);
+    Serial.print("rightErr: ");
+    Serial.println(rightErr);
+    while (fabs(leftErr) > 40 && fabs(rightErr) > 40 && fabs(currentAngle) > 0.05) {
+        Serial.println("LiDar interfering");
+        leftWall = sensor1.readRangeSingleMillimeters();
+        rightWall = sensor3.readRangeSingleMillimeters();
+
+        Serial.print("leftErr: ");
+        Serial.println(leftErr);
+        Serial.print("rightErr: ");
+        Serial.println(rightErr);
+        
+        // Get angle
+        encoder_odometry.update(encoder.getLeftRotation(),encoder.getRightRotation());
+        displayEncoderOdom(encoder_odometry.getX(), encoder_odometry.getH());
+        currentAngle = encoder_odometry.getH();
+
+        if (currentAngle > 0) {
+          motor1.setPWM(-controlSignal - 50);
+          motor2.setPWM(controlSignal);
+        }
+
+        if (currentAngle > 0) {
+          motor1.setPWM(-(controlSignal - 50));
+          motor2.setPWM(controlSignal);
+        }
+        
+        leftErr = leftWall - firstLeftWall;
+        rightErr = rightWall - firstRightWall;
+    }
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+if (fabs(rightWall - firstRightWall) > 50) {
+//        motor2.setPWM(controlSignal - 30);
+//        continue;
+//    }
+//
+//    if (fabs(leftWall - firstLeftWall) > 50) {
+//        motor1.setPWM(-controlSignal + 30);
+//        continue;
+//    }
