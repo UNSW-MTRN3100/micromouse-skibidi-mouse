@@ -25,6 +25,15 @@ public:
         lastRPos = rightValue;
     }
 
+    void reset() {
+      
+      x = 0;
+      y = 0;
+      h = 0;
+      lastLPos = 0;
+      lastRPos = 0;
+    }
+
     float getX() const { return x; }
     float getY() const { return y; }
     float getH() const { return h; }

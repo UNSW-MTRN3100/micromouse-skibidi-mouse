@@ -10,7 +10,16 @@ public:
 
     float compute(float input) {
         error = setpoint - (input - zero_ref);
+//        error = fabs(error);
+        Serial.print("Setpoint is ");
+        Serial.println(setpoint);
 
+        Serial.print("Ref is ");
+        Serial.println(zero_ref);
+
+        Serial.print("Input is ");
+        Serial.println(input);
+        
         if (fabs(error) > deadband) {
             if (error > 0) {
                 output = speed;
@@ -34,6 +43,8 @@ public:
     }
 
     void zeroAndSetTarget(float zero, float target) {
+        Serial.print("Target is ");
+        Serial.println(target);
         zero_ref = zero;
         setpoint = target;
     }
