@@ -45,9 +45,9 @@ mtrn3100::Motor motor2(MOT_2_PWM, MOT_2_DIR);
 
 // ACTION: Bangbang controller initialise
 // TODO: Tune the value
-mtrn3100::BangBangController controller(200, 5); // in PWM
-mtrn3100::BangBangController controllerR(125/2, 3); // in deg
-mtrn3100::BangBangController controllerL(125/2, 3); // in deg
+mtrn3100::BangBangController controller(125, 4); // in PWM
+mtrn3100::BangBangController controllerR(125/3, 3); // in deg
+mtrn3100::BangBangController controllerL(125/3, 3); // in deg
 
 // ACTION: PIDController initialise
 // TODO: Tune the value
@@ -83,7 +83,9 @@ void loop() {
 
   // ACTION: Read in commands and processing
   // TODO: Test this
-  processCommands("frrfllff");
+  String commands = "ffff";
+//String commands = "ffrrfrfl";
+  processCommands(commands);
 }
 
 void controllerSetup() {
@@ -199,9 +201,6 @@ void driveStraight() {
   controller.zeroAndSetTarget(encoder_odometry.getX(), 250); // in mm
   // ACTION: Computing current state
   controller.compute(encoder_odometry.getX());
-//  encoder.reset();
-  // ACTION: Zero and Set Target
-  controller.zeroAndSetTarget(encoder_odometry.getX(), 250); // in mm
 
   // TODO: Tune the error
   // ACTION: Check if it's adjusted
@@ -241,18 +240,18 @@ void driveStraight() {
       continue;
     }
 
-    if(rightWall > 81 && leftWall > 81) {
-      float yaw = getYawMPU();
-      if (yaw > 0.04) {
-        motor1.setPWM(-controlSignal + 10);
-        motor2.setPWM(controlSignal);
-        continue;
-      } else if (yaw < -.04) {
-        motor1.setPWM(-controlSignal);
-        motor2.setPWM(controlSignal - 10);
-        continue;
-      }
-    }
+//    if(rightWall > 81 && leftWall > 81) {
+//      float yaw = getYawMPU();
+//      if (yaw - startingYaw > 0.04) {
+//        motor1.setPWM(-controlSignal + 10);
+//        motor2.setPWM(controlSignal);
+//        continue;
+//      } else if (yaw - startingYaw < -.04) {
+//        motor1.setPWM(-controlSignal);
+//        motor2.setPWM(controlSignal - 10);
+//        continue;
+//      }
+//    }
 
 
     
@@ -273,8 +272,6 @@ void turnLeft(float degree, float error){
   controllerL.zeroAndSetTarget(getYawMPU(), degree); // in mm
   // ACTION: Computing current state
   controllerL.compute(getYawMPU());
-  // ACTION: Zero and Set Target
-  controllerL.zeroAndSetTarget(getYawMPU(), degree); // in mm
 
   Serial.print("The error is ");
   Serial.println(controllerL.getError());
@@ -307,8 +304,6 @@ void turnRight(float degree, float error) {
   controllerR.zeroAndSetTarget(getYawMPU(), degree); // in mm
   // ACTION: Computing current state
   controllerR.compute(getYawMPU());
-  // ACTION: Zero and Set Target
-  controllerR.zeroAndSetTarget(getYawMPU(), degree); // in mm
 
   Serial.print("The error is ");
   Serial.println(controllerR.getError());
@@ -331,7 +326,6 @@ void turnRight(float degree, float error) {
     motor2.setPWM(controlSignal);
   }
   encoder.reset();
-  encoder_odometry.reset();
 }
 
 void driveStop() {
@@ -378,6 +372,7 @@ void testMPU() {
   getYawMPU();
 }
 
+//float data[100] = {0};
 float getYawMPU() {
   mpu.update();
   gyroZ = mpu.getGyroZ();
