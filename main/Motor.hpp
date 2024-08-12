@@ -31,6 +31,8 @@ public:
             digitalWrite(dir_pin, LOW);   // Reverse direction
         }
 
+        Serial.print("PWM ");
+        Serial.println(pwm_value);
         // Output the clamped PWM value
         analogWrite(pwm_pin, pwm_value);
     }

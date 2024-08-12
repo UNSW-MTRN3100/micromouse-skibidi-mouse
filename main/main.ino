@@ -45,13 +45,13 @@ mtrn3100::Motor motor2(MOT_2_PWM, MOT_2_DIR);
 
 // ACTION: Bangbang controller initialise
 // TODO: Tune the value
-mtrn3100::BangBangController controller(125, 4); // in PWM
-mtrn3100::BangBangController controllerR(125/3, 3); // in deg
-mtrn3100::BangBangController controllerL(125/3, 3); // in deg
+mtrn3100::BangBangController controller(178, 4); // in PWM
+mtrn3100::BangBangController controllerR(175/3, 3); // in deg
+mtrn3100::BangBangController controllerL(175/3, 3); // in deg
 
 // ACTION: PIDController initialise
 // TODO: Tune the value
-//mtrn3100::PIDController controller(100, 0, 30); // in PWM
+// mtrn3100::PIDController controller(100, 10, 6); // in PWM
 //mtrn3100::PIDController controllerR(50, 0, 0); // in rad
 //mtrn3100::PIDController controllerL(50, 0, 0); // in rad
 
@@ -83,8 +83,8 @@ void loop() {
 
   // ACTION: Read in commands and processing
   // TODO: Test this
-  String commands = "ffff";
-//String commands = "ffrrfrfl";
+  // String commands = "flffrfflffrfrffff";
+  String commands = "fffffff";
   processCommands(commands);
 }
 
@@ -204,7 +204,7 @@ void driveStraight() {
 
   // TODO: Tune the error
   // ACTION: Check if it's adjusted
-  while (fabs(controller.getError()) > 5) {
+  while (fabs(controller.getError()) > 12) {
     Serial.print("The error is ");
     Serial.println(controller.getError());
     // ACTION: Update postition
@@ -229,13 +229,13 @@ void driveStraight() {
     if (leftWall < 79) {
       // Turn left
       motor1.setPWM(-controlSignal);
-      motor2.setPWM(controlSignal - 10);
+      motor2.setPWM(controlSignal - 20);
       continue;
     } 
 
     if (rightWall < 79) {
       // Turn Right
-      motor1.setPWM(-controlSignal + 10);
+      motor1.setPWM(-controlSignal + 20);
       motor2.setPWM(controlSignal);
       continue;
     }
