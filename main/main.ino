@@ -1,5 +1,3 @@
-
-
 // Easy search: COMPONENTS, ACTION, TODO
 #include "libs.hpp"
 #include <MPU6050_light.h>
@@ -8,15 +6,21 @@
 #include <Wire.h>
 
 
+
+
 // ACTION: Intialise the sensors
 VL6180X sensor1;
 VL6180X sensor2;
 VL6180X sensor3;
 
 
+
+
 int sensor1_pin = A0; // ENABLE PIN FOR SENSOR 1
 int sensor2_pin = A1; // ENABLE PIN FOR SENSOR 2
 int sensor3_pin = A2; // ENABLE PIN FOR SENSOR 3
+
+
 
 
 // ACTION: Intialise variables for the yaw MPU6050
@@ -25,7 +29,11 @@ float gyroZ = 0;
 float yaw = 0;
 
 
+
+
 MPU6050 mpu(Wire);
+
+
 
 
 // COMPONENTS: Encoders pin
@@ -35,11 +43,15 @@ MPU6050 mpu(Wire);
 #define EN_2_B 8 //These are the pins for the PCB encoder
 
 
+
+
 // COMPONENTS: Motor pin
 #define MOT_1_PWM 11 //These are pins for the motors
 #define MOT_1_DIR 12 //These are pins for the motors
 #define MOT_2_PWM 9 //These are pins for the motors
 #define MOT_2_DIR 10 //These are pins for the motors
+
+
 
 
 // ACTION: Initialise dual encoder, IMU
@@ -49,16 +61,22 @@ mtrn3100::EncoderOdometry encoder_odometry(31.73/2, 104/2); //TASK1 TODO: IDENTI
 mtrn3100::IMUOdometry IMU_odometry;
 
 
+
+
 // ACTION: Motor initialise
 mtrn3100::Motor motor1(MOT_1_PWM, MOT_1_DIR);
 mtrn3100::Motor motor2(MOT_2_PWM, MOT_2_DIR);
 
 
+
+
 // ACTION: Bangbang controller initialise
 // TODO: Tune the value
-mtrn3100::BangBangController controller(120, 4); // in PWM
+mtrn3100::BangBangController controller(125, 3); // in PWM
 mtrn3100::BangBangController controllerR(125/3, 3); // in deg
 mtrn3100::BangBangController controllerL(125/3, 3); // in deg
+
+
 
 
 // ACTION: PIDController initialise
@@ -68,8 +86,12 @@ mtrn3100::BangBangController controllerL(125/3, 3); // in deg
 //mtrn3100::PIDController controllerL(50, 0, 0); // in rad
 
 
+
+
 int firstLeftWall = 0;
 int firstRightWall = 0;
+int forwardDistance = 250; // Default distance is 250 mm
+
 
 
 void setup() {
@@ -80,8 +102,12 @@ void setup() {
   serialSetup();
 
 
+
+
   // ACTION: Set up the IMU
    mpuSetup();
+
+
 
 
   // ACTION: Setup the BangbangController
@@ -90,8 +116,12 @@ void setup() {
 }
 
 
+
+
 void loop() {
   delay(50);
+
+
 
 
   // ACTION: Test Motor, Odometry, IMU and Bang Bang
@@ -100,12 +130,19 @@ void loop() {
 //   Serial.println(encoder.getRightRotation());
 
 
+
+
   // ACTION: Read in commands and processing
   // TODO: Test this
-  String commands = "ffflff";
-//String commands = "ffrrfrfl";
+  String commands = "fsef";
+// String commands = "ffrfrflfrf";
   processCommands(commands);
+
+
+  // testLiDar();
 }
+
+
 
 
 void controllerSetup() {
@@ -115,9 +152,13 @@ void controllerSetup() {
 }
 
 
+
+
 void serialSetup() {
     Serial.begin(115200);  
 }
+
+
 
 
 void lidarSetup() {
@@ -131,6 +172,8 @@ void lidarSetup() {
   digitalWrite(sensor3_pin, LOW);
 
 
+
+
   // ENABLE FIRST SENSOR AND CHANGE THE ADDRESS
   digitalWrite(sensor1_pin, HIGH);
   delay(50);
@@ -139,6 +182,10 @@ void lidarSetup() {
   sensor1.setTimeout(250);
   sensor1.setAddress(0x54);
   delay(50);
+
+
+
+
 
 
 
@@ -155,6 +202,8 @@ void lidarSetup() {
   delay(50);
 
 
+
+
   // ENABLE THIRD SENSOR AND CHANGE THE ADDRESS
   digitalWrite(sensor3_pin, HIGH);
   delay(50);
@@ -165,9 +214,13 @@ void lidarSetup() {
   delay(50);
 
 
+
+
   firstLeftWall = 80;
   firstRightWall = 80;
 }
+
+
 
 
 void mpuSetup() {
@@ -184,6 +237,8 @@ void mpuSetup() {
 }
 
 
+
+
 void processCommands(String commands) {
     for (char command : commands) {
     Serial.print("Processing command: ");
@@ -192,7 +247,7 @@ void processCommands(String commands) {
     switch (command) {
       case 'f':
         Serial.println("Move forward");
-        driveStraight();
+        driveStraight(forwardDistance);
         driveStop();
         break;
       case 'l':
@@ -203,13 +258,27 @@ void processCommands(String commands) {
         break;
       case 'r':
         Serial.println("Turn right");
-        turnRight(-88, 3);
+        turnRight(-85, 3);
         driveStop();  
         encoder_odometry.reset();
         break;
+      // case 's':
+      //   Serial.println("Set forward distance to 83.3 mm");
+      //   forwardDistance = 166.6;
+      //   driveStraight(forwardDistance);
+      //   forwardDistance = 83.3;
+      //   break;
+      // case 'e':
+      //   Serial.println("Set forward distance back to 250 mm");
+      //   forwardDistance = 166.6;
+      //   driveStraight(forwardDistance);
+      //   forwardDistance = 250;
+      //   break;
     }
     delay(50);
   }
+
+
 
 
   while(true) {
@@ -221,12 +290,18 @@ void processCommands(String commands) {
 }
 
 
+
+
 void driveStraight() {
   Serial.println("Driving Straight");
 
 
+
+
   // ACTION: Get the currYaw
   float startingYaw = getYawMPU();
+
+
 
 
  
@@ -236,9 +311,11 @@ void driveStraight() {
   controller.compute(encoder_odometry.getX());
 
 
+
+
   // TODO: Tune the error
   // ACTION: Check if it's adjusted
-  while (fabs(controller.getError()) > 30) {
+  while (fabs(controller.getError()) > 5) {
     Serial.print("The error is ");
     Serial.println(controller.getError());
     // ACTION: Update postition
@@ -253,29 +330,45 @@ void driveStraight() {
     Serial.println(controlSignal);
 
 
+
+
     float leftWall = sensor1.readRangeSingleMillimeters();
     float rightWall = sensor3.readRangeSingleMillimeters();
     float frontWall = sensor2.readRangeSingleMillimeters();
 
 
-    if (frontWall < 85) {
+
+
+    if (frontWall < 45) {
       break;
     }
     // difference of 2 LiDars
-    if (leftWall < 79) {
+    if (leftWall < 70) {
       // Turn left
+      // motor1.setPWM(-controlSignal - 10);
       motor1.setPWM(-controlSignal);
-      motor2.setPWM(controlSignal - 5);
+      motor2.setPWM(controlSignal - 10);
+      // motor2.setPWM(controlSignal);
+
+
       continue;
     }
 
 
-    if (rightWall < 79) {
+
+
+    if (rightWall < 70) {
       // Turn Right
-      motor1.setPWM(-controlSignal + 5);
+      motor1.setPWM(-controlSignal + 10);
       motor2.setPWM(controlSignal);
+
+
+      // motor1.setPWM(-controlSignal);
+      // motor2.setPWM(controlSignal + 10);
       continue;
     }
+
+
 
 
 //    if(rightWall > 81 && leftWall > 81) {
@@ -290,10 +383,6 @@ void driveStraight() {
 //        continue;
 //      }
 //    }
-
-
-
-
    
     // ACTION: Use the Control Signal to calculate
     straight(controlSignal);
@@ -302,10 +391,14 @@ void driveStraight() {
 }
 
 
+
+
 void straight(int pwm) {
   motor1.setPWM(-pwm);
   motor2.setPWM(pwm);
 }
+
+
 
 
 void turnLeft(float degree, float error){
@@ -316,8 +409,12 @@ void turnLeft(float degree, float error){
   controllerL.compute(getYawMPU());
 
 
+
+
   Serial.print("The error is ");
   Serial.println(controllerL.getError());
+
+
 
 
   // TODO: Tune the error
@@ -344,6 +441,8 @@ void turnLeft(float degree, float error){
 }
 
 
+
+
 void turnRight(float degree, float error) {
   // ACTION: Set checkpoint
   controllerR.zeroAndSetTarget(getYawMPU(), degree); // in mm
@@ -351,8 +450,12 @@ void turnRight(float degree, float error) {
   controllerR.compute(getYawMPU());
 
 
+
+
   Serial.print("The error is ");
   Serial.println(controllerR.getError());
+
+
 
 
   // TODO: Tune the error
@@ -369,6 +472,8 @@ void turnRight(float degree, float error) {
     Serial.println(controlSignal);
 
 
+
+
     // ACTION: Use the Control Signal to calculate
     motor1.setPWM(controlSignal);
     motor2.setPWM(controlSignal);
@@ -377,10 +482,14 @@ void turnRight(float degree, float error) {
 }
 
 
+
+
 void driveStop() {
   motor1.setPWM(0);
   motor2.setPWM(0);
 }
+
+
 
 
 void test() {
@@ -390,19 +499,27 @@ void test() {
   testMPU();
 
 
+
+
   Serial.println("Test MPU ending");
   // ACTION: Run the motor
   // TODO: Test this
   testMotor();
 
 
+
+
   // ACTION: Test Encoder Odometry and Bang Bang
   testEncoderAndController();
+
+
 
 
   // ACTION: Test LiDar
   testLiDar();
 }
+
+
 
 
 void testLiDar() {
@@ -423,9 +540,13 @@ void testLiDar() {
 }
 
 
+
+
 void testMPU() {
   getYawMPU();
 }
+
+
 
 
 //float data[100] = {0};
@@ -435,19 +556,24 @@ float getYawMPU() {
   float dt = (millis() - timer) / 1000.0;
   yaw += kalmanFilter(gyroZ) * dt;
   timer = millis();
+  // yaw = kalmanFilter(mpu.getAngleZ());
   Serial.print("Yaw: ");
   Serial.println(yaw);
   return yaw;
 }
 
 
+
+
 float kalmanFilter(float U) {
-  static const double R = 500;
+  static const double R = 550;
   static const double H = 1.00;
   static double Q = 10;
   static double P = 0;
   static double U_hat = 0;
   static double K = 0;
+
+
 
 
   K = P*H/(H*P*H + R);
@@ -457,13 +583,19 @@ float kalmanFilter(float U) {
 }
 
 
+
+
 void testMotor() {
   Serial.println("Both wheels move the same time");
   motor1.setPWM(255);
   motor2.setPWM(-255);
 
 
+
+
   delay(2000);
+
+
 
 
   Serial.println("Both wheels move opposite of each other");
@@ -472,10 +604,14 @@ void testMotor() {
   delay(2000);
 
 
+
+
   Serial.println("Both wheels move opposite of each other (opposite)");
   motor1.setPWM(-255);
   motor2.setPWM(-255);
   delay(2000);
+
+
 
 
   Serial.println("Both wheels move the same as each other (opposite)");
@@ -484,6 +620,8 @@ void testMotor() {
   delay(2000);
  
 }
+
+
 
 
 void testEncoderAndController() {
@@ -497,6 +635,8 @@ void testEncoderAndController() {
   encoder_odometry.update(encoder.getLeftRotation(),encoder.getRightRotation());
   displayEncoderOdom(encoder_odometry.getX(), encoder_odometry.getH());
 }
+
+
 
 
 void displayEncoderOdom(float x, float h) {
